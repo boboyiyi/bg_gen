@@ -97,8 +97,6 @@ histogram_core::histogram_matching(const cv::Mat &source_image, const cv::Mat &t
         {
             if (*current_mask_pixel != 0)
             {
-                // std::cout << i << " " << j << std::endl;
-                // std::cout << int(*current_target_pixel) << " " << int(LUT[0][*current_target_pixel]);
                 *cloned_pixel = LUT[0][*current_target_pixel];
                 *(cloned_pixel + 1) = LUT[1][*(current_target_pixel + 1)];
                 *(cloned_pixel + 2) = LUT[2][*(current_target_pixel + 2)];

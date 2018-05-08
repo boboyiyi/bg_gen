@@ -192,7 +192,6 @@ void Cloning::poissonSolver(const Mat &img, Mat &laplacianX , Mat &laplacianY, M
     rectangle(bound, Point(1, 1), Point(img.cols-2, img.rows-2), Scalar::all(0), -1);
     Mat boundary_points;
     Laplacian(bound, boundary_points, CV_32F);
-    imwrite("hehe111.jpg", boundary_points);
 
     boundary_points = lap - boundary_points;
 

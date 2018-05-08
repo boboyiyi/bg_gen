@@ -74,7 +74,6 @@ int main(int argc, char **argv) {
     std::vector<Eigen::MatrixXf> smooth_Ts;
     bool do_smooth = false;
     for (int i = 0; i < names.size(); ++i) {
-        std::cout << i << std::endl;
         if (i - r_smooth >=0 && i + r_smooth < names.size()) {
             do_smooth = true;
         }
