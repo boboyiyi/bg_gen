@@ -3,13 +3,10 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include "./seamless_cloning.h"
 #include "./string_utils.h"
 #include "./aligner.h"
-#include "./clone.h"
-
-// SIZE就是最终输出的图像大小，而PADDING是指人脸部分左右需要流出的距离
-#define SIZE 256
-#define PADDING 48
+#include "./histogram_matching.h"
 
 void
 T_write(std::string T_file_name, Eigen::MatrixXf& T) {
@@ -100,8 +97,11 @@ int main(int argc, char **argv) {
     cv::Mat _T(2, 3, CV_32FC1);
     cv::Mat src = cv::imread(src_img_file_name, 1);
     cv::Mat mask = cv::imread(mask_file_name, 0);
+    Cloning obj;
+    histogram_core hc;
     for (int i = 0; i < names.size(); ++i) {
         std::string img_file_name = img_dir + delimiter + names[i] + ".jpg";
+        std::cout << names[i] << std::endl;
         for (int j = 0; j < 2; ++j) {
             for (int k = 0; k < 3; ++k) {
                 _T.at<float>(j, k) = smooth_Ts[i](j, k);
@@ -111,7 +111,19 @@ int main(int argc, char **argv) {
         cv::Mat warped_src, warped_mask, out;
         warpAffine(src, warped_src, _T, cv::Size(src.cols, src.rows));
         warpAffine(mask, warped_mask, _T, cv::Size(src.cols, src.rows));
-        blend::seamlessClone(dst, warped_src, warped_mask, 0, 0, out, blend::CLONE_FOREGROUND_GRADIENTS);
+        cv::Mat non_zero_pts;
+        cv::findNonZero(warped_mask, non_zero_pts);
+        cv::Rect roi_rect = cv::boundingRect(non_zero_pts);
+        roi_rect.x -= 10; roi_rect.y -= 10; roi_rect.width += 20; roi_rect.height += 20;
+        // cv::rectangle(warped_mask, roi_rect, cv::Scalar::all(30));
+        // cv::imwrite("wm.jpg", warped_mask);
+        // cv::imwrite("wc.jpg", warped_src);
+        out.create(dst.size(), CV_8UC3);
+        dst.copyTo(out);
+
+        // histogram match的方法能很明显看出边界
+        // hc.histogram_matching(dst, warped_src, warped_mask, out);
+        obj.normalClone(dst(roi_rect), warped_src(roi_rect), warped_mask(roi_rect), out(roi_rect), cv::NORMAL_CLONE);
         std::string out_img_file_name = out_dir + delimiter + names[i] + ".jpg";
         cv::imwrite(out_img_file_name, out);
     }

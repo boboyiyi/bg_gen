@@ -47,6 +47,32 @@ aligner::ls(std::string &src_pts_file_name, std::string &dst_pts_file_name) {
     pts_read(src_pts_file_name, src_pts);
     pts_read(dst_pts_file_name, dst_pts);
 
+    bool flag[NUM_PTS] = {
+    1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0};
+    int nb_align_pts = 0;
+    for (int i = 0; i < NUM_PTS; ++i) {
+        if (flag[i]) {
+            ++nb_align_pts;
+        }
+    }
+    Eigen::MatrixXf src_pts_tmp = Eigen::MatrixXf::Zero(nb_align_pts, 2);
+    Eigen::MatrixXf dst_pts_tmp = Eigen::MatrixXf::Zero(nb_align_pts, 2);
+    int cnt = 0;
+    for (int i = 0; i < NUM_PTS; ++i) {
+        if (flag[i]) {
+            src_pts_tmp.row(cnt) = src_pts.row(i);
+            dst_pts_tmp.row(cnt) = dst_pts.row(i);
+            ++cnt;
+        }
+    }
+    src_pts = src_pts_tmp;
+    dst_pts = dst_pts_tmp;
     // open below two lines in order to use pts without the region of jaw
     // src_pts = src_pts.block<NUM_ALIGN_PTS, 2>(NUM_PTS - NUM_ALIGN_PTS, 0).eval();
     // dst_pts = dst_pts.block<NUM_ALIGN_PTS, 2>(NUM_PTS - NUM_ALIGN_PTS, 0).eval();
@@ -68,6 +94,5 @@ aligner::ls(std::string &src_pts_file_name, std::string &dst_pts_file_name) {
     const Eigen::Matrix<float, 6, 1> k = A.colPivHouseholderQr().solve(b);
     T.block<1, 3>(0, 0) = k.segment<3>(0);
     T.block<1, 3>(1, 0) = k.segment<3>(3);
-    std::cout << T << std::endl;
     return T;
 }
